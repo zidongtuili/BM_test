@@ -1,0 +1,188 @@
+NOT_EMPTY_EXISTS:|- !xs. ~(xs = []) <=> (?h t. xs = CONS h t)
+ONE_ONE_INDUCT:|- !f g P. (!x. g (f x) = x) /\ (!x. P (g x)) ==> (!x. P x)
+LIST_INDUCT_APPEND:|- !P. P [] /\ (!x xs. P xs ==> P (APPEND xs [x])) ==> (!xs. P xs)
+LIST_INDUCT2:|- !P. P [] /\
+       (!x. P [x] /\ (!y ys. P (CONS y ys) ==> P (CONS x (CONS y ys))))
+       ==> (!xs. P xs)
+APPEND_EQ:|- !xs ys us vs.
+       LENGTH xs = LENGTH us
+       ==> (APPEND xs ys = APPEND us vs <=> xs = us /\ ys = vs)
+EL_EQ:|- !xs ys.
+       LENGTH xs = LENGTH ys
+       ==> ((!n. n < LENGTH xs ==> EL n xs = EL n ys) <=> xs = ys)
+EL_EQ_IMP:|- !xs ys.
+       LENGTH xs = LENGTH ys /\ (!n. n < LENGTH xs ==> EL n xs = EL n ys)
+       ==> xs = ys
+HEAD_conjunct0:|- HEAD [] = []
+HEAD_conjunct1:|- HEAD (CONS x xs) = [x]
+TAIL_conjunct0:|- TAIL [] = []
+TAIL_conjunct1:|- TAIL (CONS x xs) = xs
+ADJACENT:|- !xs. ADJACENT xs = ZIP (BUTLAST xs) (TAIL xs)
+BREAK_ACC_conjunct0:|- BREAK_ACC p [] acc = REVERSE acc,[]
+BREAK_ACC_conjunct1:|- BREAK_ACC p (CONS x xs) acc =
+   (if p x then REVERSE acc,CONS x xs else BREAK_ACC p xs (CONS x acc))
+IS_PREFIX_OF_conjunct0:|- !ys. IS_PREFIX_OF [] ys <=> T
+IS_PREFIX_OF_conjunct1:|- !x xs. IS_PREFIX_OF (CONS x xs) [] <=> F
+IS_PREFIX_OF_conjunct2:|- !x y xs ys.
+       IS_PREFIX_OF (CONS x xs) (CONS y ys) <=> x = y /\ IS_PREFIX_OF xs ys
+TAKE_conjunct0:|- TAKE 0 xs = []
+TAKE_conjunct1:|- TAKE n [] = []
+TAKE_conjunct2:|- TAKE (SUC n) (CONS x xs) = CONS x (TAKE n xs)
+DROP_conjunct0:|- DROP 0 xs = xs
+DROP_conjunct1:|- DROP n [] = []
+DROP_conjunct2:|- DROP (SUC n) (CONS x xs) = DROP n xs
+BREAK:|- BREAK p xs = BREAK_ACC p xs []
+LENGTH_TAIL:|- !xs. LENGTH (TAIL xs) = PRE (LENGTH xs)
+EL_TAIL:|- !n xs. SUC n < LENGTH xs ==> EL n (TAIL xs) = EL (SUC n) xs
+TAIL_APPEND:|- !xs ys. ~(xs = []) ==> TAIL (APPEND xs ys) = APPEND (TAIL xs) ys
+LENGTH_REVERSE:|- !xs. LENGTH (REVERSE xs) = LENGTH xs
+REVERSE_EQ_NIL:|- !xs. REVERSE xs = [] <=> xs = []
+TAIL_REVERSE:|- !xs. TAIL (REVERSE xs) = REVERSE (BUTLAST xs)
+REVERSE_EQ:|- !xs ys. REVERSE xs = REVERSE ys <=> xs = ys
+APPEND_EQ_2:|- !xs ys vs us.
+       LENGTH ys = LENGTH vs
+       ==> (APPEND xs ys = APPEND us vs <=> xs = us /\ ys = vs)
+HD_REVERSE:|- !xs. ~(xs = []) ==> HD (REVERSE xs) = LAST xs
+LAST_REVERSE:|- !xs. ~(xs = []) ==> LAST (REVERSE xs) = HD xs
+BUTLAST_APPEND:|- !xs ys. ~(ys = []) ==> BUTLAST (APPEND xs ys) = APPEND xs (BUTLAST ys)
+BUTLAST_LENGTH:|- !xs. LENGTH (BUTLAST xs) = PRE (LENGTH xs)
+BUTLAST_REVERSE:|- !xs. BUTLAST (REVERSE xs) = REVERSE (TAIL xs)
+MEM_BUTLAST:|- !x xs. ~(xs = []) ==> (MEM x xs <=> LAST xs = x \/ MEM x (BUTLAST xs))
+MEM_HD:|- !xs. ~(xs = []) ==> MEM (HD xs) xs
+MEM_LAST:|- !xs. ~(xs = []) ==> MEM (LAST xs) xs
+MEM_REVERSE:|- !p xs. MEM p (REVERSE xs) <=> MEM p xs
+ALL_REVERSE:|- ALL p (REVERSE xs) <=> ALL p xs
+EX_REVERSE:|- EX p (REVERSE xs) <=> EX p xs
+ZIP_APPEND:|- !xs ys us vs.
+       LENGTH xs = LENGTH us /\ LENGTH ys = LENGTH vs
+       ==> ZIP (APPEND xs ys) (APPEND us vs) = APPEND (ZIP xs us) (ZIP ys vs)
+ZIP_REVERSE:|- !xs ys.
+       LENGTH xs = LENGTH ys
+       ==> REVERSE (ZIP xs ys) = ZIP (REVERSE xs) (REVERSE ys)
+MEM_REVERSE1:|- !xs x. MEM x (REVERSE xs) <=> MEM x xs
+ZIP_SWAP:|- !xs ys.
+       LENGTH xs = LENGTH ys ==> ZIP xs ys = MAP (\(x,y). y,x) (ZIP ys xs)
+APPEND_HEAD_TAIL:|- !xs. ~(xs = []) ==> APPEND [HD xs] (TAIL xs) = xs
+ADJACENT_APPEND:|- !xs ys.
+       ~(xs = []) /\ ~(ys = [])
+       ==> ADJACENT (APPEND xs ys) =
+           APPEND (ADJACENT xs) (APPEND [LAST xs,HD ys] (ADJACENT ys))
+ADJACENT_CONS:|- !x y t. ADJACENT (CONS x (CONS y t)) = CONS (x,y) (ADJACENT (CONS y t))
+ADJACENT_CLAUSES_conjunct0:|- !x y t. ADJACENT [] = []
+ADJACENT_CLAUSES_conjunct1:|- !x y t. ADJACENT [x] = []
+ADJACENT_CLAUSES_conjunct2:|- !x y t. ADJACENT (CONS x (CONS y t)) = CONS (x,y) (ADJACENT (CONS y t))
+ADJACENT_MEM2:|- !xs x y. MEM (x,y) (ADJACENT xs) ==> MEM x xs /\ MEM y xs
+EL_IS_PREFIX_OF:|- !xs ys n. IS_PREFIX_OF xs ys /\ n < LENGTH xs ==> EL n xs = EL n ys
+LENGTH_IS_PREFIX_OF:|- !xs ys. IS_PREFIX_OF xs ys ==> LENGTH xs <= LENGTH ys
+IS_PREFIX_OF_APPEND:|- !xs ys. IS_PREFIX_OF xs (APPEND xs ys)
+IS_PREFIX_OF_EXISTS_APPEND:|- !xs ys zs. IS_PREFIX_OF xs ys <=> (?zs. APPEND xs zs = ys)
+IS_PREFIX_OF_ADJACENT:|- !xs ys. IS_PREFIX_OF xs ys ==> IS_PREFIX_OF (ADJACENT xs) (ADJACENT ys)
+TAKE_ADJACENT:|- !xs n. TAKE n (ADJACENT xs) = ADJACENT (TAKE (SUC n) xs)
+DROP_ADJACENT:|- !xs n. DROP n (ADJACENT xs) = ADJACENT (DROP n xs)
+MEM_IS_PREFIX_OF:|- !xs ys. IS_PREFIX_OF xs ys ==> (!x. MEM x xs ==> MEM x ys)
+MEM_ZIP_SWAP:|- !xs ys x y.
+       LENGTH xs = LENGTH ys
+       ==> (MEM (x,y) (ZIP xs ys) <=> MEM (y,x) (ZIP ys xs))
+MEM_ADJACENT_REVERSE:|- !xs x y. MEM (y,x) (ADJACENT (REVERSE xs)) <=> MEM (x,y) (ADJACENT xs)
+APPEND_CONS_NOT_NIL:|- !xs ys y. ~(APPEND xs (CONS y ys) = [])
+HEAD_TAIL:|- !xs. APPEND (HEAD xs) (TAIL xs) = xs
+BREAK_ACC_APPEND_conjunct0:|- !p xs y ys.
+       FST (BREAK_ACC p xs (APPEND ys [y])) =
+       CONS y (FST (BREAK_ACC p xs ys))
+BREAK_ACC_APPEND_conjunct1:|- !p xs y ys. SND (BREAK_ACC p xs (APPEND ys [y])) = SND (BREAK_ACC p xs ys)
+BREAK_ACC_CONS_conjunct0:|- !p xs y. FST (BREAK_ACC p xs [y]) = CONS y (FST (BREAK_ACC p xs []))
+BREAK_ACC_CONS_conjunct1:|- !p xs y. SND (BREAK_ACC p xs [y]) = SND (BREAK_ACC p xs [])
+BREAK_CONS_conjunct0:|- !p x xs.
+       FST (BREAK p (CONS x xs)) =
+       (if p x then [] else CONS x (FST (BREAK p xs)))
+BREAK_CONS_conjunct1:|- !p x xs.
+       SND (BREAK p (CONS x xs)) =
+       (if p x then CONS x xs else SND (BREAK p xs))
+BREAK_APPEND_conjunct0:|- !p xs. EX p xs ==> FST (BREAK p (APPEND xs ys)) = FST (BREAK p xs)
+BREAK_APPEND_conjunct1:|- !p xs.
+       EX p xs
+       ==> SND (BREAK p (APPEND xs ys)) = APPEND (SND (BREAK p xs)) ys
+BREAK_FST_ALL:|- !p xs. ALL (\x. ~p x) (FST (BREAK p xs))
+BREAK_SND_EX:|- !p xs. EX p xs ==> ~(SND (BREAK p xs) = []) /\ p (HD (SND (BREAK p xs)))
+APPEND_BREAK:|- !p xs. APPEND (FST (BREAK p xs)) (SND (BREAK p xs)) = xs
+APPEND_HD_TL:|- !xs. ~(xs = []) ==> CONS (HD xs) (TL xs) = xs
+ALL_SUBSET:|- !P xs. ALL P xs <=> set_of_list xs SUBSET P
+TAKE_APPEND:|- !xs ys. TAKE (LENGTH xs) (APPEND xs ys) = xs
+DROP_APPEND:|- !xs ys. DROP (LENGTH xs) (APPEND xs ys) = ys
+APPEND_TAKE:|- !n xs ys. APPEND xs (TAKE n ys) = TAKE (LENGTH xs + n) (APPEND xs ys)
+TAKE_LEFT_APPEND:|- !xs ys. TAKE (LENGTH xs) (APPEND xs ys) = xs
+TAKE_DROP:|- !n xs. APPEND (TAKE n xs) (DROP n xs) = xs
+LENGTH_TAKE:|- !xs n. LENGTH (TAKE n xs) = MIN n (LENGTH xs)
+LENGTH_DROP:|- !xs n. LENGTH (DROP n xs) = LENGTH xs - n
+LENGTH_ADJACENT:|- !xs. LENGTH (ADJACENT xs) = PRE (LENGTH xs)
+EL_ADJACENT:|- !n xs. SUC n < LENGTH xs ==> EL n (ADJACENT xs) = EL n xs,EL (SUC n) xs
+MEM_EL_ADJACENT:|- !n xs. SUC n < LENGTH xs ==> MEM (EL n xs,EL (SUC n) xs) (ADJACENT xs)
+ADJACENT_EQ_NIL:|- !xs. ADJACENT xs = [] <=> xs = [] \/ (?x. xs = [x])
+ADJACENT_EQ_CONS:|- !x xs ys.
+       SUC 0 < LENGTH xs /\ SUC 0 < LENGTH ys /\ ADJACENT xs = ADJACENT ys
+       ==> ADJACENT (CONS x xs) = ADJACENT (CONS x ys)
+ADJACENT_EQ:|- !xs ys.
+       SUC 0 < LENGTH xs /\ SUC 0 < LENGTH ys
+       ==> (ADJACENT xs = ADJACENT ys <=> xs = ys)
+REVERSE_EL:|- !xs n. n < LENGTH xs ==> EL n xs = EL (LENGTH xs - SUC n) (REVERSE xs)
+DROP_EL:|- !xs m n. n < LENGTH xs - m ==> EL n (DROP m xs) = EL (m + n) xs
+TAKE_EL:|- !xs m n. n < MIN m (LENGTH xs) ==> EL n (TAKE m xs) = EL n xs
+DROP_EQ_NIL:|- !xs n. LENGTH xs <= n <=> DROP n xs = []
+TAKE_ID:|- !xs n. LENGTH xs <= n <=> TAKE n xs = xs
+MEM_TAKE:|- !n x xs. MEM x (TAKE n xs) ==> MEM x xs
+MEM_DROP:|- !n x xs. MEM x (DROP n xs) ==> MEM x xs
+ITER_conjunct0:|- ITER 0 f x = x
+ITER_conjunct1:|- ITER (SUC n) f x = f (ITER n f x)
+ITER_INJ:|- !n. ITER n SUC 0 = n
+ITER_ADD:|- !n m f x. ITER (n + m) f x = ITER n f (ITER m f x)
+ITER_SUC:|- !n f x. ITER (SUC n) f x = ITER n f (f x)
+ITER_IND:|- !n P f x. P x /\ (!x. P x ==> P (f x)) ==> P (ITER n f x)
+INDUCT_ITER:|- !f g. f 0 = b /\ (!n. f (SUC n) = g (f n)) ==> (!n. ITER n g b = f n)
+ITER_MAP:|- !f n x g h. (!y. f (g y) = h (f y)) ==> f (ITER n g x) = ITER n h (f x)
+ITER_MAP2:|- !f g n. (!x. f x = g x) ==> ITER n f x = ITER n g x
+MAXIMUM:|- !ns b n. MEM n ns ==> n <= ITLIST MAX ns b
+PAIRWISE_APPEND:|- !P xs ys.
+       PAIRWISE P (APPEND xs ys) <=>
+       PAIRWISE P xs /\ (!x. MEM x xs ==> ALL (P x) ys) /\ PAIRWISE P ys
+ALL_DISTINCT_CARD:|- !xs. PAIRWISE (\x y. ~(x = y)) xs <=> CARD (set_of_list xs) = LENGTH xs
+CHOOSE_PREFIX:|- !n xs. n <= LENGTH xs ==> (?ys zs. xs = APPEND ys zs /\ LENGTH ys = n)
+CHOOSE_SUFFIX:|- !n xs. n <= LENGTH xs ==> (?ys zs. xs = APPEND ys zs /\ LENGTH zs = n)
+BREAK_LAST:|- !p xs.
+       BREAK_LAST p xs =
+       (let ys,zs = BREAK p (REVERSE xs) in REVERSE zs,REVERSE ys)
+LAMBDA_PAIRED:|- !f p. (\(x,y). f x y) p = f (FST p) (SND p)
+APPEND_BREAK_LAST:|- !p xs. APPEND (FST (BREAK_LAST p xs)) (SND (BREAK_LAST p xs)) = xs
+BREAK_LAST_SND_ALL:|- !p xs. ALL (\x. ~p x) (SND (BREAK_LAST p xs))
+BREAK_LAST_FST_EX:|- !p xs.
+       EX p xs
+       ==> ~(FST (BREAK_LAST p xs) = []) /\ p (LAST (FST (BREAK_LAST p xs)))
+list_CASES_APPEND:|- !xs. xs = [] \/ (?pre last. xs = APPEND pre [last])
+MEM_IS_INFIX:|- !x xs. MEM x xs <=> (?ys zs. xs = APPEND ys (CONS x zs))
+MEM_ADJACENT_IS_INFIX:|- !x y xs.
+       MEM (x,y) (ADJACENT xs) <=>
+       (?ys zs. xs = APPEND ys (CONS x (CONS y zs)))
+ADJACENT_MIDDLE:|- !xs ys m.
+       ADJACENT (APPEND xs (CONS m ys)) =
+       APPEND (ADJACENT (APPEND xs [m])) (ADJACENT (CONS m ys))
+MAP_FST_ADJACENT:|- !Ps. MAP FST (ADJACENT Ps) = BUTLAST Ps
+PAIRWISE_INFIX_EQ:|- !xs ws x.
+       PAIRWISE (\x y. ~(x = y)) (APPEND xs (CONS x ys))
+       ==> APPEND xs (CONS x ys) = APPEND ws (CONS x zs)
+       ==> xs = ws /\ ys = zs
+rotation:|- !xs ys. rotation xs ys <=> (?n. xs = APPEND (DROP n ys) (TAKE n ys))
+APPEND_DROP:|- !n xs ys. n <= LENGTH xs ==> APPEND (DROP n xs) ys = DROP n (APPEND xs ys)
+DROP_LENGTH:|- !n xs. LENGTH xs <= n ==> DROP n xs = []
+rotation_LENGTH_EQ:|- rotation xs ys ==> LENGTH xs = LENGTH ys
+DROP_DROP:|- !n m xs. DROP (n + m) xs = DROP n (DROP m xs)
+TAKE_TAKE:|- !n m xs. TAKE (n + m) xs = APPEND (TAKE n xs) (TAKE m (DROP n xs))
+DROP_APPEND2:|- !n xs ys.
+       DROP n (APPEND xs ys) = APPEND (DROP n xs) (DROP (n - LENGTH xs) ys)
+TAKE_APPEND2:|- !n xs ys.
+       TAKE n (APPEND xs ys) = APPEND (TAKE n xs) (TAKE (n - LENGTH xs) ys)
+rot_of:|- !xs ys. rot_of xs ys <=> (?us vs. xs = APPEND us vs /\ ys = APPEND vs us)
+CONS_EQ_EXISTS_CONS:|- !h t xs. xs = CONS h t ==> (?ys. xs = CONS h ys)
+APPEND_lemma:|- !as bs xs ys.
+       APPEND as bs = APPEND xs ys /\ LENGTH as <= LENGTH xs
+       ==> (?es. APPEND as bs = APPEND as (APPEND es ys))
+rot_of_refl:|- !xs. rot_of xs xs
+rot_of_sym:|- !xs ys. rot_of xs ys <=> rot_of ys xs

@@ -1,0 +1,156 @@
+HD:|- HD (CONS h t) = h
+TL:|- TL (CONS h t) = t
+APPEND_conjunct0:|- !l. APPEND [] l = l
+APPEND_conjunct1:|- !h t l. APPEND (CONS h t) l = CONS h (APPEND t l)
+REVERSE_conjunct0:|- REVERSE [] = []
+REVERSE_conjunct1:|- REVERSE (CONS x l) = APPEND (REVERSE l) [x]
+LENGTH_conjunct0:|- LENGTH [] = 0
+LENGTH_conjunct1:|- !h t. LENGTH (CONS h t) = SUC (LENGTH t)
+MAP_conjunct0:|- !f. MAP f [] = []
+MAP_conjunct1:|- !f h t. MAP f (CONS h t) = CONS (f h) (MAP f t)
+LAST:|- LAST (CONS h t) = (if t = [] then h else LAST t)
+BUTLAST_conjunct0:|- BUTLAST [] = []
+BUTLAST_conjunct1:|- BUTLAST (CONS h t) = (if t = [] then [] else CONS h (BUTLAST t))
+REPLICATE_conjunct0:|- REPLICATE 0 x = []
+REPLICATE_conjunct1:|- REPLICATE (SUC n) x = CONS x (REPLICATE n x)
+NULL_conjunct0:|- NULL [] <=> T
+NULL_conjunct1:|- NULL (CONS h t) <=> F
+ALL_conjunct0:|- ALL P [] <=> T
+ALL_conjunct1:|- ALL P (CONS h t) <=> P h /\ ALL P t
+EX_conjunct0:|- EX P [] <=> F
+EX_conjunct1:|- EX P (CONS h t) <=> P h \/ EX P t
+ITLIST_conjunct0:|- ITLIST f [] b = b
+ITLIST_conjunct1:|- ITLIST f (CONS h t) b = f h (ITLIST f t b)
+MEM_conjunct0:|- MEM x [] <=> F
+MEM_conjunct1:|- MEM x (CONS h t) <=> x = h \/ MEM x t
+ALL2_DEF_conjunct0:|- ALL2 P [] l2 <=> l2 = []
+ALL2_DEF_conjunct1:|- ALL2 P (CONS h1 t1) l2 <=>
+   (if l2 = [] then F else P h1 (HD l2) /\ ALL2 P t1 (TL l2))
+ALL2_conjunct0:|- ALL2 P [] [] <=> T
+ALL2_conjunct1:|- ALL2 P (CONS h1 t1) [] <=> F
+ALL2_conjunct2:|- ALL2 P [] (CONS h2 t2) <=> F
+ALL2_conjunct3:|- ALL2 P (CONS h1 t1) (CONS h2 t2) <=> P h1 h2 /\ ALL2 P t1 t2
+MAP2_DEF_conjunct0:|- MAP2 f [] l = []
+MAP2_DEF_conjunct1:|- MAP2 f (CONS h1 t1) l = CONS (f h1 (HD l)) (MAP2 f t1 (TL l))
+MAP2_conjunct0:|- MAP2 f [] [] = []
+MAP2_conjunct1:|- MAP2 f (CONS h1 t1) (CONS h2 t2) = CONS (f h1 h2) (MAP2 f t1 t2)
+EL_conjunct0:|- EL 0 l = HD l
+EL_conjunct1:|- EL (SUC n) l = EL n (TL l)
+FILTER_conjunct0:|- FILTER P [] = []
+FILTER_conjunct1:|- FILTER P (CONS h t) = (if P h then CONS h (FILTER P t) else FILTER P t)
+ASSOC:|- ASSOC a (CONS h t) = (if FST h = a then SND h else ASSOC a t)
+ITLIST2_DEF_conjunct0:|- ITLIST2 f [] l2 b = b
+ITLIST2_DEF_conjunct1:|- ITLIST2 f (CONS h1 t1) l2 b = f h1 (HD l2) (ITLIST2 f t1 (TL l2) b)
+ITLIST2_conjunct0:|- ITLIST2 f [] [] b = b
+ITLIST2_conjunct1:|- ITLIST2 f (CONS h1 t1) (CONS h2 t2) b = f h1 h2 (ITLIST2 f t1 t2 b)
+ZIP_DEF_conjunct0:|- ZIP [] l2 = []
+ZIP_DEF_conjunct1:|- ZIP (CONS h1 t1) l2 = CONS (h1,HD l2) (ZIP t1 (TL l2))
+ZIP_conjunct0:|- ZIP [] [] = []
+ZIP_conjunct1:|- ZIP (CONS h1 t1) (CONS h2 t2) = CONS (h1,h2) (ZIP t1 t2)
+PAIRWISE_conjunct0:|- PAIRWISE r [] <=> T
+PAIRWISE_conjunct1:|- PAIRWISE r (CONS h t) <=> ALL (r h) t /\ PAIRWISE r t
+list_of_seq_conjunct0:|- list_of_seq s 0 = []
+list_of_seq_conjunct1:|- list_of_seq s (SUC n) = APPEND (list_of_seq s n) [s n]
+NOT_CONS_NIL:|- !h t. ~(CONS h t = [])
+LAST_CLAUSES_conjunct0:|- LAST [h] = h
+LAST_CLAUSES_conjunct1:|- LAST (CONS h (CONS k t)) = LAST (CONS k t)
+APPEND_NIL:|- !l. APPEND l [] = l
+APPEND_ASSOC:|- !l m n. APPEND l (APPEND m n) = APPEND (APPEND l m) n
+REVERSE_APPEND:|- !l m. REVERSE (APPEND l m) = APPEND (REVERSE m) (REVERSE l)
+REVERSE_REVERSE:|- !l. REVERSE (REVERSE l) = l
+CONS_11:|- !h1 h2 t1 t2. CONS h1 t1 = CONS h2 t2 <=> h1 = h2 /\ t1 = t2
+list_CASES:|- !l. l = [] \/ (?h t. l = CONS h t)
+LIST_EQ:|- !l1 l2.
+       l1 = l2 <=>
+       LENGTH l1 = LENGTH l2 /\ (!n. n < LENGTH l2 ==> EL n l1 = EL n l2)
+LENGTH_APPEND:|- !l m. LENGTH (APPEND l m) = LENGTH l + LENGTH m
+MAP_APPEND:|- !f l1 l2. MAP f (APPEND l1 l2) = APPEND (MAP f l1) (MAP f l2)
+LENGTH_MAP:|- !l f. LENGTH (MAP f l) = LENGTH l
+LENGTH_EQ_NIL:|- !l. LENGTH l = 0 <=> l = []
+LENGTH_EQ_CONS:|- !l n. LENGTH l = SUC n <=> (?h t. l = CONS h t /\ LENGTH t = n)
+MAP_o:|- !f g l. MAP (g o f) l = MAP g (MAP f l)
+MAP_EQ:|- !f g l. ALL (\x. f x = g x) l ==> MAP f l = MAP g l
+ALL_IMP:|- !P Q l. (!x. MEM x l /\ P x ==> Q x) /\ ALL P l ==> ALL Q l
+NOT_EX:|- !P l. ~EX P l <=> ALL (\x. ~P x) l
+NOT_ALL:|- !P l. ~ALL P l <=> EX (\x. ~P x) l
+ALL_MAP:|- !P f l. ALL P (MAP f l) <=> ALL (P o f) l
+ALL_T:|- !l. ALL (\x. T) l
+MAP_EQ_ALL2:|- !l m. ALL2 (\x y. f x = f y) l m ==> MAP f l = MAP f m
+ALL2_MAP:|- !P f l. ALL2 P (MAP f l) l <=> ALL (\a. P (f a) a) l
+MAP_EQ_DEGEN:|- !l f. ALL (\x. f x = x) l ==> MAP f l = l
+ALL2_AND_RIGHT:|- !l m P Q. ALL2 (\x y. P x /\ Q x y) l m <=> ALL P l /\ ALL2 Q l m
+ITLIST_APPEND:|- !f a l1 l2. ITLIST f (APPEND l1 l2) a = ITLIST f l1 (ITLIST f l2 a)
+ITLIST_EXTRA:|- !l. ITLIST f (APPEND l [a]) b = ITLIST f l (f a b)
+ALL_MP:|- !P Q l. ALL (\x. P x ==> Q x) l /\ ALL P l ==> ALL Q l
+AND_ALL:|- !l. ALL P l /\ ALL Q l <=> ALL (\x. P x /\ Q x) l
+EX_IMP:|- !P Q l. (!x. MEM x l /\ P x ==> Q x) /\ EX P l ==> EX Q l
+ALL_MEM:|- !P l. (!x. MEM x l ==> P x) <=> ALL P l
+LENGTH_REPLICATE:|- !n x. LENGTH (REPLICATE n x) = n
+EX_MAP:|- !P f l. EX P (MAP f l) <=> EX (P o f) l
+EXISTS_EX:|- !P l. (?x. EX (P x) l) <=> EX (\s. ?x. P x s) l
+FORALL_ALL:|- !P l. (!x. ALL (P x) l) <=> ALL (\s. !x. P x s) l
+MEM_APPEND:|- !x l1 l2. MEM x (APPEND l1 l2) <=> MEM x l1 \/ MEM x l2
+MEM_MAP:|- !f y l. MEM y (MAP f l) <=> (?x. MEM x l /\ y = f x)
+FILTER_APPEND:|- !P l1 l2. FILTER P (APPEND l1 l2) = APPEND (FILTER P l1) (FILTER P l2)
+FILTER_MAP:|- !P f l. FILTER P (MAP f l) = MAP f (FILTER (P o f) l)
+MEM_FILTER:|- !P l x. MEM x (FILTER P l) <=> P x /\ MEM x l
+EX_MEM:|- !P l. (?x. P x /\ MEM x l) <=> EX P l
+MAP_FST_ZIP:|- !l1 l2. LENGTH l1 = LENGTH l2 ==> MAP FST (ZIP l1 l2) = l1
+MAP_SND_ZIP:|- !l1 l2. LENGTH l1 = LENGTH l2 ==> MAP SND (ZIP l1 l2) = l2
+LENGTH_ZIP:|- !l1 l2. LENGTH l1 = LENGTH l2 ==> LENGTH (ZIP l1 l2) = LENGTH l2
+MEM_ASSOC:|- !l x. MEM (x,ASSOC x l) l <=> MEM x (MAP FST l)
+ALL_APPEND:|- !P l1 l2. ALL P (APPEND l1 l2) <=> ALL P l1 /\ ALL P l2
+MEM_EL:|- !l n. n < LENGTH l ==> MEM (EL n l) l
+MEM_EXISTS_EL:|- !l x. MEM x l <=> (?i. i < LENGTH l /\ x = EL i l)
+ALL_EL:|- !P l. (!i. i < LENGTH l ==> P (EL i l)) <=> ALL P l
+ALL2_MAP2:|- !l m. ALL2 P (MAP f l) (MAP g m) <=> ALL2 (\x y. P (f x) (g y)) l m
+AND_ALL2:|- !P Q l m. ALL2 P l m /\ ALL2 Q l m <=> ALL2 (\x y. P x y /\ Q x y) l m
+ALL2_ALL:|- !P l. ALL2 P l l <=> ALL (\x. P x x) l
+APPEND_EQ_NIL:|- !l m. APPEND l m = [] <=> l = [] /\ m = []
+APPEND_LCANCEL:|- !l1 l2 l3. APPEND l1 l2 = APPEND l1 l3 <=> l2 = l3
+APPEND_RCANCEL:|- !l1 l2 l3. APPEND l1 l3 = APPEND l2 l3 <=> l1 = l2
+LENGTH_MAP2:|- !f l m. LENGTH l = LENGTH m ==> LENGTH (MAP2 f l m) = LENGTH m
+MAP_EQ_NIL:|- !f l. MAP f l = [] <=> l = []
+INJECTIVE_MAP:|- !f. (!l m. MAP f l = MAP f m ==> l = m) <=> (!x y. f x = f y ==> x = y)
+SURJECTIVE_MAP:|- !f. (!m. ?l. MAP f l = m) <=> (!y. ?x. f x = y)
+MAP_ID:|- !l. MAP (\x. x) l = l
+MAP_I:|- MAP I = I
+BUTLAST_APPEND:|- !xs ys. ~(ys = []) ==> BUTLAST (APPEND xs ys) = APPEND xs (BUTLAST ys)
+APPEND_BUTLAST_LAST:|- !l. ~(l = []) ==> APPEND (BUTLAST l) [LAST l] = l
+LAST_APPEND:|- !p q. LAST (APPEND p q) = (if q = [] then LAST p else LAST q)
+LENGTH_TL:|- !l. ~(l = []) ==> LENGTH (TL l) = LENGTH l - 1
+EL_APPEND:|- !k l m.
+       EL k (APPEND l m) =
+       (if k < LENGTH l then EL k l else EL (k - LENGTH l) m)
+EL_TL:|- !n. EL n (TL l) = EL (n + 1) l
+EL_CONS:|- !n h t. EL n (CONS h t) = (if n = 0 then h else EL (n - 1) t)
+LAST_EL:|- !l. ~(l = []) ==> LAST l = EL (LENGTH l - 1) l
+HD_APPEND:|- !l m. HD (APPEND l m) = (if l = [] then HD m else HD l)
+CONS_HD_TL:|- !l. ~(l = []) ==> l = CONS (HD l) (TL l)
+EL_MAP:|- !f n l. n < LENGTH l ==> EL n (MAP f l) = f (EL n l)
+MAP_REVERSE:|- !f l. REVERSE (MAP f l) = MAP f (REVERSE l)
+ALL_FILTER:|- !P Q l. ALL P (FILTER Q l) <=> ALL (\x. Q x ==> P x) l
+APPEND_SING:|- !h t. APPEND [h] t = CONS h t
+MEM_APPEND_DECOMPOSE_LEFT:|- !x l. MEM x l <=> (?l1 l2. ~MEM x l1 /\ l = APPEND l1 (CONS x l2))
+MEM_APPEND_DECOMPOSE:|- !x l. MEM x l <=> (?l1 l2. l = APPEND l1 (CONS x l2))
+PAIRWISE_APPEND:|- !P xs ys.
+       PAIRWISE P (APPEND xs ys) <=>
+       PAIRWISE P xs /\ (!x. MEM x xs ==> ALL (P x) ys) /\ PAIRWISE P ys
+PAIRWISE_MAP:|- !R f l. PAIRWISE R (MAP f l) <=> PAIRWISE (\x y. R (f x) (f y)) l
+PAIRWISE_IMPLIES:|- !R R' l.
+       PAIRWISE R l /\ (!x y. MEM x l /\ MEM y l /\ R x y ==> R' x y)
+       ==> PAIRWISE R' l
+PAIRWISE_TRANSITIVE:|- !R x y l.
+       (!x y z. R x y /\ R y z ==> R x z)
+       ==> (PAIRWISE R (CONS x (CONS y l)) <=>
+            R x y /\ PAIRWISE R (CONS y l))
+LENGTH_LIST_OF_SEQ:|- !s n. LENGTH (list_of_seq s n) = n
+EL_LIST_OF_SEQ:|- !s m n. m < n ==> EL m (list_of_seq s n) = s m
+LIST_OF_SEQ_EQ_NIL:|- !s n. list_of_seq s n = [] <=> n = 0
+MONO_ALL:|- (!x. P x ==> Q x) ==> ALL P l ==> ALL Q l
+MONO_ALL2:|- (!x y. P x y ==> Q x y) ==> ALL2 P l l' ==> ALL2 Q l l'
+char_INDUCT:|- !P. (!a0 a1 a2 a3 a4 a5 a6 a7. P (ASCII a0 a1 a2 a3 a4 a5 a6 a7))
+       ==> (!x. P x)
+char_RECURSION:|- !f. ?fn. !a0 a1 a2 a3 a4 a5 a6 a7.
+                fn (ASCII a0 a1 a2 a3 a4 a5 a6 a7) =
+                f a0 a1 a2 a3 a4 a5 a6 a7

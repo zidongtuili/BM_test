@@ -1,0 +1,226 @@
+poly_conjunct0:|- poly [] x = &0
+poly_conjunct1:|- poly (CONS h t) x = h + x * poly t x
+POLY_CONST:|- !c x. poly [c] x = c
+POLY_X:|- !c x. poly [&0; &1] x = x
+poly_add_conjunct0:|- [] ++ l2 = l2
+poly_add_conjunct1:|- CONS h t ++ l2 =
+   (if l2 = [] then CONS h t else CONS (h + HD l2) (t ++ TL l2))
+poly_cmul_conjunct0:|- c ## [] = []
+poly_cmul_conjunct1:|- c ## CONS h t = CONS (c * h) (c ## t)
+poly_neg:|- neg = (##) (-- &1)
+poly_mul_conjunct0:|- [] ** l2 = []
+poly_mul_conjunct1:|- CONS h t ** l2 =
+   (if t = [] then h ## l2 else h ## l2 ++ CONS (&0) (t ** l2))
+poly_exp_conjunct0:|- poly_exp p 0 = [&1]
+poly_exp_conjunct1:|- poly_exp p (SUC n) = p ** poly_exp p n
+poly_diff_aux_conjunct0:|- poly_diff_aux n [] = []
+poly_diff_aux_conjunct1:|- poly_diff_aux n (CONS h t) = CONS (&n * h) (poly_diff_aux (SUC n) t)
+poly_diff:|- !l. poly_diff l = (if l = [] then [] else poly_diff_aux 1 (TL l))
+LENGTH_POLY_DIFF_AUX:|- !l n. LENGTH (poly_diff_aux n l) = LENGTH l
+LENGTH_POLY_DIFF:|- !l. LENGTH (poly_diff l) = PRE (LENGTH l)
+POLY_ADD_CLAUSES_conjunct0:|- [] ++ p2 = p2
+POLY_ADD_CLAUSES_conjunct1:|- p1 ++ [] = p1
+POLY_ADD_CLAUSES_conjunct2:|- CONS h1 t1 ++ CONS h2 t2 = CONS (h1 + h2) (t1 ++ t2)
+POLY_NEG_CLAUSES_conjunct0:|- neg [] = []
+POLY_NEG_CLAUSES_conjunct1:|- neg (CONS h t) = CONS (--h) (neg t)
+POLY_MUL_CLAUSES_conjunct0:|- [] ** p2 = []
+POLY_MUL_CLAUSES_conjunct1:|- [h1] ** p2 = h1 ## p2
+POLY_MUL_CLAUSES_conjunct2:|- CONS h1 (CONS k1 t1) ** p2 = h1 ## p2 ++ CONS (&0) (CONS k1 t1 ** p2)
+POLY_DIFF_CLAUSES_conjunct0:|- poly_diff [] = []
+POLY_DIFF_CLAUSES_conjunct1:|- poly_diff [c] = []
+POLY_DIFF_CLAUSES_conjunct2:|- poly_diff (CONS h t) = poly_diff_aux 1 t
+POLY_ADD:|- !p1 p2 x. poly (p1 ++ p2) x = poly p1 x + poly p2 x
+POLY_CMUL:|- !p c x. poly (c ## p) x = c * poly p x
+POLY_NEG:|- !p x. poly (neg p) x = --poly p x
+POLY_MUL:|- !x p1 p2. poly (p1 ** p2) x = poly p1 x * poly p2 x
+POLY_EXP:|- !p n x. poly (poly_exp p n) x = poly p x pow n
+POLY_DIFF_LEMMA:|- !l n x.
+       ((\x. x pow SUC n * poly l x) diffl
+        x pow n * poly (poly_diff_aux (SUC n) l) x)
+       x
+POLY_DIFF:|- !l x. ((\x. poly l x) diffl poly (poly_diff l) x) x
+POLY_DIFFERENTIABLE:|- !l x. (\x. poly l x) differentiable x
+POLY_CONT:|- !l x. (\x. poly l x) contl x
+POLY_IVT_POS:|- !p a b.
+       a < b /\ poly p a < &0 /\ poly p b > &0
+       ==> (?x. a < x /\ x < b /\ poly p x = &0)
+POLY_IVT_NEG:|- !p a b.
+       a < b /\ poly p a > &0 /\ poly p b < &0
+       ==> (?x. a < x /\ x < b /\ poly p x = &0)
+POLY_MVT:|- !p a b.
+       a < b
+       ==> (?x. a < x /\
+                x < b /\
+                poly p b - poly p a = (b - a) * poly (poly_diff p) x)
+POLY_MVT_ADD:|- !p a x.
+       ?y. abs y <= abs x /\
+           poly p (a + x) = poly p a + x * poly (poly_diff p) (a + y)
+POLY_ADD_RZERO:|- !p. poly (p ++ []) = poly p
+POLY_MUL_ASSOC:|- !p q r. poly (p ** q ** r) = poly ((p ** q) ** r)
+POLY_EXP_ADD:|- !d n p. poly (poly_exp p (n + d)) = poly (poly_exp p n ** poly_exp p d)
+POLY_DIFF_AUX_ADD:|- !p1 p2 n.
+       poly (poly_diff_aux n (p1 ++ p2)) =
+       poly (poly_diff_aux n p1 ++ poly_diff_aux n p2)
+POLY_DIFF_AUX_CMUL:|- !p c n. poly (poly_diff_aux n (c ## p)) = poly (c ## poly_diff_aux n p)
+POLY_DIFF_AUX_NEG:|- !p n. poly (poly_diff_aux n (neg p)) = poly (neg (poly_diff_aux n p))
+POLY_DIFF_AUX_MUL_LEMMA:|- !p n. poly (poly_diff_aux (SUC n) p) = poly (poly_diff_aux n p ++ p)
+POLY_DIFF_ADD:|- !p1 p2. poly (poly_diff (p1 ++ p2)) = poly (poly_diff p1 ++ poly_diff p2)
+POLY_DIFF_CMUL:|- !p c. poly (poly_diff (c ## p)) = poly (c ## poly_diff p)
+POLY_DIFF_NEG:|- !p. poly (poly_diff (neg p)) = poly (neg (poly_diff p))
+POLY_DIFF_MUL_LEMMA:|- !t h. poly (poly_diff (CONS h t)) = poly (CONS (&0) (poly_diff t) ++ t)
+POLY_DIFF_MUL:|- !p1 p2.
+       poly (poly_diff (p1 ** p2)) =
+       poly (p1 ** poly_diff p2 ++ poly_diff p1 ** p2)
+POLY_DIFF_EXP:|- !p n.
+       poly (poly_diff (poly_exp p (SUC n))) =
+       poly ((&(SUC n) ## poly_exp p n) ** poly_diff p)
+POLY_DIFF_EXP_PRIME:|- !n a.
+       poly (poly_diff (poly_exp [--a; &1] (SUC n))) =
+       poly (&(SUC n) ## poly_exp [--a; &1] n)
+POLY_LINEAR_REM:|- !t h. ?q r. CONS h t = [r] ++ [--a; &1] ** q
+POLY_LINEAR_DIVIDES:|- !a p. poly p a = &0 <=> p = [] \/ (?q. p = [--a; &1] ** q)
+POLY_LENGTH_MUL:|- !q. LENGTH ([--a; &1] ** q) = SUC (LENGTH q)
+POLY_ROOTS_INDEX_LEMMA:|- !n p.
+       ~(poly p = poly []) /\ LENGTH p = n
+       ==> (?i. !x. poly p x = &0 ==> (?m. m <= n /\ x = i m))
+POLY_ROOTS_INDEX_LENGTH:|- !p. ~(poly p = poly [])
+       ==> (?i. !x. poly p x = &0 ==> (?n. n <= LENGTH p /\ x = i n))
+POLY_ROOTS_FINITE_LEMMA:|- !p. ~(poly p = poly [])
+       ==> (?N i. !x. poly p x = &0 ==> (?n. n < N /\ x = i n))
+FINITE_LEMMA:|- !i N P. (!x. P x ==> (?n. n < N /\ x = i n)) ==> (?a. !x. P x ==> x < a)
+POLY_ROOTS_FINITE:|- !p. ~(poly p = poly []) <=>
+       (?N i. !x. poly p x = &0 ==> (?n. n < N /\ x = i n))
+POLY_ENTIRE_LEMMA:|- !p q.
+       ~(poly p = poly []) /\ ~(poly q = poly [])
+       ==> ~(poly (p ** q) = poly [])
+POLY_ENTIRE:|- !p q. poly (p ** q) = poly [] <=> poly p = poly [] \/ poly q = poly []
+POLY_MUL_LCANCEL:|- !p q r.
+       poly (p ** q) = poly (p ** r) <=> poly p = poly [] \/ poly q = poly r
+POLY_EXP_EQ_0:|- !p n. poly (poly_exp p n) = poly [] <=> poly p = poly [] /\ ~(n = 0)
+POLY_PRIME_EQ_0:|- !a. ~(poly [a; &1] = poly [])
+POLY_EXP_PRIME_EQ_0:|- !a n. ~(poly (poly_exp [a; &1] n) = poly [])
+POLY_ZERO_LEMMA:|- !h t. poly (CONS h t) = poly [] ==> h = &0 /\ poly t = poly []
+POLY_ZERO:|- !p. poly p = poly [] <=> ALL (\c. c = &0) p
+POLY_DIFF_AUX_ISZERO:|- !p n. ALL (\c. c = &0) (poly_diff_aux (SUC n) p) <=> ALL (\c. c = &0) p
+POLY_DIFF_ISZERO:|- !p. poly (poly_diff p) = poly [] ==> (?h. poly p = poly [h])
+POLY_DIFF_ZERO:|- !p. poly p = poly [] ==> poly (poly_diff p) = poly []
+POLY_DIFF_WELLDEF:|- !p q. poly p = poly q ==> poly (poly_diff p) = poly (poly_diff q)
+divides:|- !p2 p1. poly_divides p1 p2 <=> (?q. poly p2 = poly (p1 ** q))
+POLY_PRIMES:|- !a p q.
+       poly_divides [a; &1] (p ** q) <=>
+       poly_divides [a; &1] p \/ poly_divides [a; &1] q
+POLY_DIVIDES_REFL:|- !p. poly_divides p p
+POLY_DIVIDES_TRANS:|- !p q r. poly_divides p q /\ poly_divides q r ==> poly_divides p r
+POLY_DIVIDES_EXP:|- !p m n. m <= n ==> poly_divides (poly_exp p m) (poly_exp p n)
+POLY_EXP_DIVIDES:|- !p q m n.
+       poly_divides (poly_exp p n) q /\ m <= n
+       ==> poly_divides (poly_exp p m) q
+POLY_DIVIDES_ADD:|- !p q r. poly_divides p q /\ poly_divides p r ==> poly_divides p (q ++ r)
+POLY_DIVIDES_SUB:|- !p q r. poly_divides p q /\ poly_divides p (q ++ r) ==> poly_divides p r
+POLY_DIVIDES_SUB2:|- !p q r. poly_divides p r /\ poly_divides p (q ++ r) ==> poly_divides p q
+POLY_DIVIDES_ZERO:|- !p q. poly p = poly [] ==> poly_divides q p
+POLY_ORDER_EXISTS:|- !a d p.
+       LENGTH p = d /\ ~(poly p = poly [])
+       ==> (?n. poly_divides (poly_exp [--a; &1] n) p /\
+                ~poly_divides (poly_exp [--a; &1] (SUC n)) p)
+POLY_ORDER:|- !p a.
+       ~(poly p = poly [])
+       ==> (?!n. poly_divides (poly_exp [--a; &1] n) p /\
+                 ~poly_divides (poly_exp [--a; &1] (SUC n)) p)
+order:|- !a p.
+       order a p =
+       (@n. poly_divides (poly_exp [--a; &1] n) p /\
+            ~poly_divides (poly_exp [--a; &1] (SUC n)) p)
+ORDER:|- !p a n.
+       poly_divides (poly_exp [--a; &1] n) p /\
+       ~poly_divides (poly_exp [--a; &1] (SUC n)) p <=>
+       n = order a p /\ ~(poly p = poly [])
+ORDER_THM:|- !p a.
+       ~(poly p = poly [])
+       ==> poly_divides (poly_exp [--a; &1] (order a p)) p /\
+           ~poly_divides (poly_exp [--a; &1] (SUC (order a p))) p
+ORDER_UNIQUE:|- !p a n.
+       ~(poly p = poly []) /\
+       poly_divides (poly_exp [--a; &1] n) p /\
+       ~poly_divides (poly_exp [--a; &1] (SUC n)) p
+       ==> n = order a p
+ORDER_POLY:|- !p q a. poly p = poly q ==> order a p = order a q
+ORDER_ROOT:|- !p a. poly p a = &0 <=> poly p = poly [] \/ ~(order a p = 0)
+ORDER_DIVIDES:|- !p a n.
+       poly_divides (poly_exp [--a; &1] n) p <=>
+       poly p = poly [] \/ n <= order a p
+ORDER_DECOMP:|- !p a.
+       ~(poly p = poly [])
+       ==> (?q. poly p = poly (poly_exp [--a; &1] (order a p) ** q) /\
+                ~poly_divides [--a; &1] q)
+ORDER_MUL:|- !a p q.
+       ~(poly (p ** q) = poly [])
+       ==> order a (p ** q) = order a p + order a q
+ORDER_DIFF:|- !p a.
+       ~(poly (poly_diff p) = poly []) /\ ~(order a p = 0)
+       ==> order a p = SUC (order a (poly_diff p))
+POLY_SQUAREFREE_DECOMP_ORDER:|- !p q d e r s.
+       ~(poly (poly_diff p) = poly []) /\
+       poly p = poly (q ** d) /\
+       poly (poly_diff p) = poly (e ** d) /\
+       poly d = poly (r ** p ++ s ** poly_diff p)
+       ==> (!a. order a q = (if order a p = 0 then 0 else 1))
+rsquarefree:|- !p. rsquarefree p <=>
+       ~(poly p = poly []) /\ (!a. order a p = 0 \/ order a p = 1)
+RSQUAREFREE_ROOTS:|- !p. rsquarefree p <=> (!a. ~(poly p a = &0 /\ poly (poly_diff p) a = &0))
+RSQUAREFREE_DECOMP:|- !p a.
+       rsquarefree p /\ poly p a = &0
+       ==> (?q. poly p = poly ([--a; &1] ** q) /\ ~(poly q a = &0))
+POLY_SQUAREFREE_DECOMP:|- !p q d e r s.
+       ~(poly (poly_diff p) = poly []) /\
+       poly p = poly (q ** d) /\
+       poly (poly_diff p) = poly (e ** d) /\
+       poly d = poly (r ** p ++ s ** poly_diff p)
+       ==> rsquarefree q /\ (!a. poly q a = &0 <=> poly p a = &0)
+normalize_conjunct0:|- normalize [] = []
+normalize_conjunct1:|- normalize (CONS h t) =
+   (if normalize t = []
+    then if h = &0 then [] else [h]
+    else CONS h (normalize t))
+POLY_NORMALIZE:|- !p. poly (normalize p) = poly p
+degree:|- !p. degree p = PRE (LENGTH (normalize p))
+DEGREE_ZERO:|- !p. poly p = poly [] ==> degree p = 0
+POLY_ROOTS_FINITE_SET:|- !p. ~(poly p = poly []) ==> FINITE {x | poly p x = &0}
+POLY_MONO:|- !x k p. abs x <= k ==> abs (poly p x) <= poly (MAP abs p) k
+NOT_POLY_CMUL_NIL:|- !h p. ~(p = []) ==> ~(h ## p = [])
+NOT_POLY_MUL_NIL:|- !p1 p2. ~(p1 = []) /\ ~(p2 = []) ==> ~(p1 ** p2 = [])
+NOT_POLY_EXP_NIL:|- !n p. ~(p = []) ==> ~(poly_exp p n = [])
+NOT_POLY_EXP_X_NIL:|- !n. ~(poly_exp [&0; &1] n = [])
+POLY_CMUL_LID:|- !p. &1 ## p = p
+POLY_MUL_LID:|- !p. [&1] ** p = p
+POLY_MUL_RID:|- !p. p ** [&1] = p
+POLY_ADD_SYM:|- !x y. x ++ y = y ++ x
+POLY_ADD_ASSOC:|- !x y z. x ++ y ++ z = (x ++ y) ++ z
+TL_POLY_MUL_X:|- !p. TL ([&0; &1] ** p) = p
+HD_POLY_MUL_X:|- !p. HD ([&0; &1] ** p) = &0
+TL_POLY_EXP_X_SUC:|- !n. TL (poly_exp [&0; &1] (SUC n)) = poly_exp [&0; &1] n
+HD_POLY_EXP_X_SUC:|- !n. HD (poly_exp [&0; &1] (SUC n)) = &0
+HD_POLY_ADD:|- !p1 p2. ~(p1 = []) /\ ~(p2 = []) ==> HD (p1 ++ p2) = HD p1 + HD p2
+HD_POLY_CMUL:|- !x p. ~(p = []) ==> HD (x ## p) = x * HD p
+TL_POLY_CMUL:|- !x p. ~(p = []) ==> TL (x ## p) = x ## TL p
+HD_POLY_MUL:|- !p1 p2. ~(p1 = []) /\ ~(p2 = []) ==> HD (p1 ** p2) = HD p1 * HD p2
+HD_POLY_EXP:|- !n p. ~(p = []) ==> HD (poly_exp p n) = HD p pow n
+POLY_ADD_IDENT:|- neutral (++) = []
+POLY_ADD_NEUTRAL:|- !x. neutral (++) ++ x = x
+MONOIDAL_POLY_ADD:|- monoidal (++)
+POLY_DIFF_AUX_ADD_LEMMA:|- !t1 t2 n.
+       poly_diff_aux n (t1 ++ t2) = poly_diff_aux n t1 ++ poly_diff_aux n t2
+POLYDIFF_ADD:|- !p1 p2. poly_diff (p1 ++ p2) = poly_diff p1 ++ poly_diff p2
+POLY_DIFF_AUX_POLY_CMUL:|- !p c n. poly_diff_aux n (c ## p) = c ## poly_diff_aux n p
+POLY_CMUL_POLY_DIFF:|- !p c. poly_diff (c ## p) = c ## poly_diff p
+POLY_CMUL_LENGTH:|- !c p. LENGTH (c ## p) = LENGTH p
+POLY_ADD_LENGTH:|- !p q. LENGTH (p ++ q) = MAX (LENGTH p) (LENGTH q)
+POLY_MUL_LENGTH:|- !p h t. LENGTH (p ** CONS h t) >= LENGTH p
+POLY_EXP_X_REC:|- !n. poly_exp [&0; &1] (SUC n) = CONS (&0) (poly_exp [&0; &1] n)
+POLY_MUL_LENGTH2:|- !q p. ~(q = []) ==> LENGTH (p ** q) >= LENGTH p
+POLY_EXP_X_LENGTH:|- !n. LENGTH (poly_exp [&0; &1] n) = SUC n
+POLY_SUM_EQUIV:|- !p x.
+       ~(p = [])
+       ==> poly p x = sum (0..PRE (LENGTH p)) (\i. EL i p * x pow i)
+ITERATE_RADD_POLYADD:|- !n x f.
+       iterate (+) (0..n) (\i. poly (f i) x) = poly (iterate (++) (0..n) f) x
